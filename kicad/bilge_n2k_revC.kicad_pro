@@ -1,0 +1,85 @@
+{
+  "meta": {
+    "filename": "bilge_n2k_revC.kicad_pro",
+    "version": 3
+  },
+  "board": {
+    "design_settings": {
+      "rules": {
+        "min_clearance": 0.2,
+        "min_track_width": 0.15,
+        "min_through_hole_diameter": 0.3,
+        "min_hole_to_hole": 0.25,
+        "min_via_diameter": 0.5,
+        "min_copper_edge_clearance": 0.3
+      }
+    }
+  },
+  "net_settings": {
+    "classes": [
+      {
+        "name": "Default",
+        "clearance": 0.2,
+        "track_width": 0.25,
+        "via_diameter": 0.6,
+        "via_drill": 0.3
+      },
+      {
+        "name": "Power",
+        "clearance": 0.2,
+        "track_width": 0.6,
+        "via_diameter": 0.8,
+        "via_drill": 0.4
+      }
+    ],
+    "meta": {
+      "version": 3
+    },
+    "netclass_patterns": [
+      {
+        "netclass": "Power",
+        "pattern": "VIN"
+      },
+      {
+        "netclass": "Power",
+        "pattern": "VFUSED"
+      },
+      {
+        "netclass": "Power",
+        "pattern": "VBAT_IN"
+      },
+      {
+        "netclass": "Power",
+        "pattern": "+5V"
+      },
+      {
+        "netclass": "Power",
+        "pattern": "DEV_5V"
+      },
+      {
+        "netclass": "Power",
+        "pattern": "SW"
+      },
+      {
+        "netclass": "Power",
+        "pattern": "LIGHT_OUT"
+      },
+      {
+        "netclass": "Power",
+        "pattern": "BUZZ_OUT"
+      },
+      {
+        "netclass": "Power",
+        "pattern": "NET_SP"
+      },
+      {
+        "netclass": "Power",
+        "pattern": "+5V_ISO"
+      },
+      {
+        "netclass": "Power",
+        "pattern": "NET_S"
+      }
+    ]
+  }
+}

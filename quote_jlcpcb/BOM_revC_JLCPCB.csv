@@ -1,0 +1,27 @@
+Comment,Designator,Footprint,LCSC Part #
+10 uF 25 V X5R 0805,"C1,C2,C3,C15,C16",C0805,C15850
+100 nF 50 V X7R 0603 (JLCPCB Basic),"C4,C5,C9,C10,C11,C12,C13,C14,C17,C18,C19",C0603,C14663
+22 uF 25 V X5R 0805 (JLCPCB Basic; buck COUT per AP63205 DS41326),"C6,C7,C8",C0805,C45783
+"TVS 600 W bidirectional, VRWM 15 V, VBR 16.7-18.5 V, VC 24.4 V","D1,D6",DO-214AA (SMB),C19077570
+LED red 0603,"D2,D3",LED0603,C2286
+Schottky 40 V 1 A,"D4,D5,D7,D8",DO-214AC (SMA),C2480
+"PPTC 2 A hold, 4 A trip, 24 V",F1,1812,C46641174
+"1x22 female header 2.54 mm, 8.5 mm tall (dev-board socket)","HDR1,HDR2",THT 2.54 mm 1x22,C41376161
+"Screw terminal 5.08 mm, 2 pos, side entry",J1,THT 5.08 mm,C2997519
+"Screw terminal 5.08 mm, 4 pos, side entry","J2,J3,J4",THT 5.08 mm,C2997521
+"4.7 uH 20 %, shielded, 6x6 mm (4.7 uH = AP63205 datasheet Table 3 for 5 V out)",L1,SMD 6x6 mm,C2044594
+"P-MOSFET -30 V -4 A, VGS +-12 V","Q1,Q6,Q7",SOT-23,C15127
+"N-MOSFET 30 V 5.7 A, VGS +-12 V, logic level","Q2,Q3,Q4,Q5",SOT-23,C20917
+47 k 1 % 0603,"R1,R4,R23,R28,R30",R0603,C25819
+100 k 1 % 0603,"R2,R3,R8,R10,R12,R14,R16,R19,R21,R22",R0603,C25803
+470 ohm 1 % 0603,"R5,R6",R0603,C23179
+10 k 1 % 0603,"R7,R24",R0603,C25804
+27 k 1 % 0603,"R9,R11,R13,R15,R17",R0603,C22967
+1 k 1 % 0603,"R18,R20",R0603,C21190
+5.1 k 1 % 0603,"R25,R26",R0603,C23186
+22 k 1 % 0603,"R27,R29",R0603,C31850
+Tactile switch 5.1x5.1 mm SMD,SW3,SMD 5.1x5.1,C318884
+"5 V 2 A buck, 3.8-32 V in, TSOT-26",U1,TSOT-23-6,C2071056
+"5 V 100 mA linear regulator, 30 V in",U3,SOT-89-3,C42738
+"5 kVrms isolated CAN transceiver, VCC1 2.5-5.5 V, VCC2 4.5-5.5 V",U4,SOIC-8 wide (7.5 mm body),C528763
+"Barometric pressure + temperature sensor, I2C 0x76, 300-1200 mbar",U5,QFN-4 (3x3),C3033010

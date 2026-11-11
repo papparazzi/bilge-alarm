@@ -1,0 +1,4 @@
+pad/net check: OK
+isolation check: OK
+barrier: bus copper max x = 25.57 mm, logic copper min x (y>67) = 34.42 mm, gap = 8.85 mm (datasheet package clearance 8 mm)
+tracks 820 footprints 84

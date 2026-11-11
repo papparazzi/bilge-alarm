@@ -1,0 +1,74 @@
+# Holistic pre-order review - Rev C.4 (2026-10-28, updated 2026-10-29)
+
+Author of the design and of this review: the same AI assistant, working with the owner. **This review is therefore not independent; its purpose is to give an external reviewer a head start and an honest list of what was and was not verified.** Nothing has been built or powered up. No order has been placed.
+
+## 1. Verdict
+**Ready to order as a first prototype, with the conditions in section 5.** One real defect was found and fixed during this review (JLCPCB part orientation, F1). Seven items remain that only a person with the physical parts, a datasheet I could not read, or a bench can close (section 3). The terminal-block item (formerly O1) was closed in a second pass: see F6. No electrical error was found in the netlist.
+
+## 2. How the review was done
+| Method | What it covered | Result |
+|---|---|---|
+| KiCad DRC on the final routed board (0.18 mm clearance; router works to 0.20 mm) | clearance, shorts, unconnected nets, drill/annular limits | 0 errors, 0 unconnected; 19 silkscreen warnings only (see `08_verification/drc_summary.txt`) |
+| `verify_board.py` | every pad on the right net vs the generated netlist; isolation check | pad/net OK; isolation OK |
+| Track/via/drill audit (`08_verification/board_stats.txt`) | widths on power nets, via and drill sizes | min track 0.20 mm (signals), power nets 0.45-0.60 mm, vias 0.3/0.6 mm, no sub-spec features |
+| Datasheet reads (PDFs in `07_datasheets/`) | CA-IS3050G pinout/ratings, AP63205 pinout/ratings/Table 3, L78L05 SOT-89 pinout (ST Fig. 2), MS5637 pinout/package/pad layout | all four pinouts match the netlist |
+| JLCPCB tooling | BOM matching, stock, Basic/Extended/Standard-only flags, Economic eligibility, placement viewer | 23/23 lines matched; Economic accepted; viewer used to check orientation (F1) |
+| Hand analysis | power path, high-side output stage, input dividers, thresholds, thermal, fault cases | findings below |
+
+## 3. Findings
+Severity: **High** = could stop the board working or cost a respin; **Med** = degrades margin or needs a decision; **Low** = cosmetic or note.
+
+### Fixed during this review
+| ID | Finding | Fix |
+|---|---|---|
+| F1 **High** | JLCPCB's part library is oriented differently from KiCad's for some packages. In JLCPCB's viewer the models of **Q1-Q7 (SOT-23) sat 180 deg off, U1 (TSOT-23-6) 270 deg off, U4 (SOIC-8 wide) 90 deg off** versus the pads. Uncorrected, the SMT line would have placed them rotated (shorted or dead). | `gen/post_export.py` adds +180 (SOT-23), +270 (TSOT-23, SOIC-8) to KiCad's rotation **in the placement file only**. Re-uploaded and re-checked in the viewer: model pin-1 dots and leg sides now match the pads and silkscreen for Q2-Q5, U1, U4. LEDs (polarity), SS14 diodes (cathode band), SOT-89 U3, switch SW3, headers, terminals and U5 looked consistent without change. |
+| F2 Med | MS5637 datasheet p.15: "Reserved area: please do not route tracks between pads". The autorouter had put 6 track segments there. | Added a keep-out cross between the pads (top layer) and re-routed; verified 0 tracks inside. |
+| F3 Low | Stale BOM comment said the 4.7 uH inductor value was "to confirm". | Confirmed against AP63205 datasheet DS41326 Table 3 (4.7 uH for 5 V). Text updated. |
+| F4 Low | A tiny ground-pour island (C18 pad) had no via. | Added a stitching via; board re-routed, 0 unconnected. |
+| F5 Low | Silkscreen said REV C.2. | Now REV C.3. |
+| F7 **High** (found 2026-10-29) | **The clone dev board is not the official board's size.** The seller's dimension picture (`07_datasheets/clone_dimensions_from_seller.png`) shows 27.94 x 57.15 mm with **25.40 mm between the pin rows** and a 53.34 mm pin span; the board had been laid out for Espressif's 22.86 mm rows (sockets 2.54 mm too close: the dev board would not have fitted). | Re-laid out as **Rev C.4**: row spacing 25.40 mm, board length 57.15 mm, pin 1 at x = 44.755 mm (USB end flush with the right edge), outline silk redrawn, LED/MUTE group moved down 8 mm, short labels near the corner hole; re-routed (DRC 0 errors, 0 unconnected, isolation 8.85 mm), Gerbers/BOM/CPL regenerated, JLCPCB draft re-uploaded. **Assumed, not seen:** 1.905 mm pin margin at both ends (57.15 - 53.34, halved), pin order identical to the official board, pin 1 (3V3) at the antenna end. Verify with the first board. |
+| F6 **High** (was O1) | **Terminal blocks DORABO DB127S-5.08 (C2997519/21)**: no DORABO drawing was reachable (LCSC blocks downloads), but the part matches the **Degson DG127S-5.08** (same 300 V / 12 A / 14-26 AWG, 11 mm height; drawing DG127S-5.08-XXP-1Y-00A(H) in `07_datasheets/`). From that drawing: pitch 5.08 mm single row; **recommended PCB hole 1.40 mm** (board had 1.3); pin 0.5 mm thick, 3.5 mm long; body 12.0 mm deep **centred on the pin row (6.0 mm each side)**, 10.8 mm high, width 5.08 x (N-1) + 6.08 mm; **wire entry at 45 degrees**. Checks: neighbouring body gaps are J4-J1 11.84, J1-J3 1.68, J3-J2 0.68 mm (all positive); body front face lands exactly on the board edge (pin row to edge is 6.0 mm; +-0.2 mm tolerance, so it may overhang by up to 0.2 mm); body back reaches y = 88 mm, nothing is placed there (the lower 1 mm of each bold label box is hidden under the body). | Terminal pad holes changed to 1.40 mm in the routed board and Gerbers (position, pad size and routing unchanged). Residual risk: DORABO's own drawing was not seen, so a DORABO-specific difference cannot be excluded; JLCPCB's viewer shows the wire-entry openings facing the board edge. The case needs openings for 45-degree wire entry on the bottom edge. |
+Earlier in the project (already in the history): placement-file origin mismatch (parts floated off the board in JLCPCB's viewer), header-socket rotation, JLCPCB "Standard Only" parts (BME280, BMP581) removed.
+
+### Open - need a person / bench / datasheet I did not have
+| ID | Sev | Finding | Why it matters | Suggested action |
+|---|---|---|---|---|
+| O2 | **High** | **MS5637 (C3033010)**: JLCPCB flags it "The processing of this component is difficult", unticks it by default and reviews it after the order (may add a fee or refuse). Footprint is custom: four 1.0 x 1.0 mm pads at +-1.0 mm, taken from the datasheet's recommended pad layout (p.15) and checked against the package drawing (p.14). Pin 1 = top-left seen from above, matching the datasheet module-orientation drawing and JLCPCB's model dot. | Wrong rotation would swap VDD/GND/SDA/SCL. | After ordering, check JLCPCB's DFM report (they say 4-6 h) for U5 orientation; pin 1 is the top-left pad on the top view (VDD). If refused, leave U5 unpopulated and hand-solder (footprint stays). |
+| O3 | **High** | **Dev board is a third-party clone** (DZQJ ESP32-S3-DevKitC-1, N8R2/N16R8, two USB-C ports, CH343 USB-UART). Row spacing and length now follow the seller's drawing (F7), but the pin order, end margins, regulator, USB/5V-pin power-ORing are assumed from the official board and unverified. | Mis-sized sockets = dev board does not fit. | Check the first board before powering: row spacing 25.40 mm, pitch 2.54 mm, pin 1 (3V3) at the antenna end, pin order against the J1/J3 table in `DEVBOARD_PINMAP_revC.md`. Check the clone's schematic for the 5V pin vs USB behaviour (Espressif documents USB / 5V pin / 3V3 pin as mutually exclusive). |
+| O4 | Med | **High-side output stage is unsimulated and unbuilt.** **[Rev C.5: fixed]** The gate pull-up (VIN to gate) is now 22 k and the bottom resistor 47 k, so |Vgs| = 0.32 VIN: -3.8 V at 12 V, -5 V at 16 V, -7.8 V at the 24.4 V TVS clamp (AO3401A abs max +-12 V). It was VIN/2 (47 k / 47 k), -12.2 V at the clamp. Minimum drive at 9 V is -2.9 V (Rds(on) about 85 mohm at -2.5 V, acceptable). Turn-on RC (47 k x ~1 nF) about 50 us, harmless. Flyback SS14 across each load is correct for the switched-positive topology. Loads must have their negative on boat negative (J3 GND pins). | A wrong gate network = outputs never turn on, or burn the FET. | Bench test with a bulb and a buzzer at 9, 12, 15 V before fitting to the boat. Optional hardening: a 12 V zener across each gate-source. |
+| O5 | Med | **Autorouted layout not reviewed by a human.** Check: buck loop (U1-L1-C5/C6-C8, SW node ~16 mm of track), CAN pair (CANH_J 19 mm / CANL_J 26 mm, 0.2-0.25 mm tracks, unequal) , input-divider routing, ground return paths. | Layout is where DC-correct designs fail. | A person should open `04_kicad/bilge_n2k_revC_routed.kicad_pcb`. 250 kbit/s CAN is forgiving; the buck is the one to look at. |
+| O6 | Med | **AP63205 output capacitance.** Datasheet Table 3: 2 x 22 uF (and 22-68 uF "sufficient"). **[Rev C.5: fixed, C6-C8 are now 22 uF 25 V X5R 0805, JLCPCB C45783, Basic]** Rev C.4 had 3 x 10 uF 25 V X5R 0805, about 7.5 uF each at 5 V bias = **~23 uF effective**, at the bottom of the range. | Marginal stability/ripple, not a failure. | Measure ripple and a load step at bring-up. If poor, replace C6-C8 with 22 uF parts (new BOM line = extra $2.06 fee). |
+| O7 | Med | **F1 (PPTC 1.5 A hold, 3 A trip)** carries *everything*: buck (~0.1-0.2 A) + light + buzzer. At 45-50 C behind the MFD the hold current derates to ~1.1-1.2 A. | Nuisance trips if light + buzzer exceed about 1 A together. | Keep each load <= 0.4 A, or use a 3 A-hold part. The silkscreen's "external 3 A fuse" protects the wiring, not this. |
+| O8 | Med | **Bus-side 5 V (L78L05, SOT-89)**: CA-IS3050G draws up to 73 mA dominant (12 mA recessive; typ ~25-40 mA on a busy bus) -> device **LEN = 2** (1 LEN = 50 mA). At 15-16 V bus the regulator dissipates ~(16-0.4-5) x 0.04 = 0.4 W average, 0.8 W worst case; tab goes to the NET_C copper pour. | Thermal shutdown (150 C) is possible at 16 V + worst-case traffic in a warm enclosure. | Normal 12-14 V bus is fine. Declare LEN 2. If hot in testing, add copper or replace with a switching regulator. |
+| O9 | Low | **Sense inputs saturate near 14.5 V** (100 k/27 k divider -> 3.1 V at the ADC's 11 dB limit). The charge peak (14.4-14.8 V) may read as "maxed". Inputs have no clamp diodes, but the 100 k series resistor limits injection to ~0.2 mA at a 24 V surge. | Reading range, not safety. | Accept, or change divider ratio before the next spin. |
+| O10 | Low | LEDs run at ~1.4 mA (1 k from 3.3 V): dim in daylight. | Visibility. | Change R5/R6 to 470 ohm (a new resistor value = one new BOM line). |
+| O11 | Low | MS5637 is mounted on the electronics, so it reads board temperature (self-heating, warm MFD) and no humidity. | Data quality. | Treat temperature as "compartment temperature". Add an SHT4x on the SDA/SCL/3V3 pads if humidity is wanted. MS5637 wants no-clean flux and no washing; keep conformal coat off the port. |
+| O12 | Low | Mechanical: M3 holes (2.6 mm from edges, courtyards removed); tallest items are 8.5 mm sockets + dev board (~13 mm) and the 11 mm terminals; dev-board USB end is flush with the right edge; dev-board RESET/BOOT buttons need case access. | Case design. | Designer's call. |
+| O13 | Info | Not an NMEA 2000 certified device; no terminator on the board; shield not connected; connection is by screw terminals (cut drop cable or adapter). NET-S input range 9-16 V. | Compliance expectations. | State in documentation. |
+| O14 | Info | Firmware is not ported. GPIO map is in `DEVBOARD_PINMAP_revC.md`. IN1/IN2 are on ADC2 (fine while Wi-Fi is off). | - | - |
+
+## 4. Verified-OK list (checked, no issue found)
+- **Pinouts vs datasheets:** CA-IS3050G SOIC8-WB (1 VCC1, 2 RXD, 3 TXD, 4 GND1, 5 GND2, 6 CANL, 7 CANH, 8 VCC2); L78L05 SOT-89 (1 OUT, 2 GND/tab, 3 IN, ST Fig. 2); AP63205 TSOT-26 (1 FB tied to output, 2 EN, 3 VIN, 4 GND, 5 SW, 6 BST); MS5637 (1 VDD, 2 SDA, 3 SCL, 4 GND); AO3400A/AO3401A SOT-23 (1 G, 2 S, 3 D); SS14 cathode on pad 1.
+- **Ratings:** buck VIN 3.8-32 V (abs 35 V) vs TVS clamp 24.4 V; EN abs 35 V vs 0.32 x VIN (7.8 V at clamp); L78L05 VIN abs 30 V; AO340x 30 V; CA-IS3050G VCC1 2.5-5.5 V (3.3 V used), VCC2 4.5-5.5 V; MS5637 VDD 1.5-3.6 V (3.3 V used). Input caps 25 V vs 24.4 V clamp.
+- **Reverse polarity:** AO3401A in the positive line, drain on the battery side, source on the load side, gate divider 47 k/100 k (Vgs = -0.32 x VIN: -3.8 V at 12 V, -9.3 V at the 29 V surge) - correct orientation; blocks a reversed battery; the bidirectional TVS (breakdown 16.7 V) does not conduct at 12 V reverse.
+- **Buck:** 4.7 uH matches Table 3; 100 nF boot cap; 100 k/47 k enable divider starts at ~3.7 V (EN threshold 1.18 V); inductor Isat comfortably above 2 A x 1.35.
+- **CAN:** TXD pull-up (10 k to 3.3 V) holds recessive in reset; 100 nF bypass on both VCC pins; bus TVS 15 V; no capacitor bridges the isolation gap; copper gap 8.85 mm vs package 8 mm; keep-out rule area on both layers; no component or pour crosses it; bus-side ground (NET_C) and logic ground are separate nets.
+- **Defaults in reset:** output gates pulled low (100 k), LIGHT/BUZZ outputs off; hardware bypass (float 8-16 V on IN4 -> HW gate 2.6-3.8 V > 1.45 V Vgs(th)) turns both outputs on without the ESP32; IN4 pull-down path ~68 k.
+- **GPIO choice:** no strapping pins (IO0, IO3, IO45, IO46) and no USB pins (IO19/20) used; IO35-37 (octal PSRAM on N16R8) unused; I2C on IO41/42 (JTAG pins, free in default USB-JTAG mode); ADC1 for IN3/IN4/VSENSE; 3.3 V load from the dev board < 15 mA.
+- **JLCPCB:** all 23 BOM lines matched; no "Standard Only" lines; Large Size fee $0; stock sufficient (lowest: DB127S 2P 1,950; SRN6045 570; DB127S 4P 791; MS5637 1,031 - for 5 boards need 5/5/15/5).
+
+## 5. Conditions before ordering
+1. Accept JLCPCB's updated-terms dialog (owner only).
+2. (Done) terminal-block dimensions checked against the Degson DG127S drawing, see F6; plan case openings for the 45-degree wire entry.
+3. Decide on O3 (measure or accept the clone risk).
+4. Accept the MS5637 review risk (O2), or untick U5 and hand-solder.
+5. After ordering, read JLCPCB's DFM report (promised 4-6 h) and answer any question about U5 / terminals promptly.
+6. First power-up on a bench supply with a current limit (0.3 A), USB disconnected, then USB + supply together (O3), then loads (O4).
+
+## 6. Questions for the external reviewer
+1. Is the switched-positive output stage (section O4) sound, including the 47 k/47 k gate divider, the flyback diodes and failure behaviour with a floating or shorted load wire?
+2. Anything wrong with the reverse-polarity + TVS + PPTC input protection for a 12 V boat system with alternator spikes and equalisation up to ~16 V?
+3. Is the bus-side supply (SS14 + L78L05 + 10 uF) adequate for an NMEA 2000 node at LEN 2 up to 16 V?
+4. Layout: buck loop, CAN pair routing, ground returns, and anything in the placement that you would change before ordering.
+5. Orientation/footprint risks at the JLCPCB assembly step that I might have missed (list in section 3, F1, F6 and O2).
+6. Any part whose specification does not fit its use.

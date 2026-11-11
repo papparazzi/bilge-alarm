@@ -1,0 +1,11 @@
+{
+  "autodeskProduct": "Fusion",
+  "type": "script",
+  "id": "8f1d2c64-7b0e-4a39-9d55-2e6a4c1b9f03",
+  "author": "sascha",
+  "description": {"": "Bilge alarm Rev C.5 case: base, cover, mute plunger"},
+  "version": "1.0",
+  "runOnStartup": false,
+  "supportedOS": "windows|mac",
+  "editEnabled": true
+}

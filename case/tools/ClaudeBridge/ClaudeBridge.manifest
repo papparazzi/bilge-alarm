@@ -1,0 +1,11 @@
+{
+  "autodeskProduct": "Fusion",
+  "type": "addin",
+  "id": "5d0c3b46-3a51-4d8a-9a53-6c1f0b7e2a11",
+  "author": "local",
+  "description": {"": "Runs Python files dropped into the inbox folder, so Claude Code can drive Fusion"},
+  "version": "2.0.0",
+  "runOnStartup": false,
+  "supportedOS": "windows|mac",
+  "editEnabled": true
+}
